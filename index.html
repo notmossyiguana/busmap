@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BBIS Campus Routes</title>
   
-  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
@@ -16,16 +15,12 @@
     #map { flex: 1; height: 100%; z-index: 1; }
     h1 { font-size: 1.2rem; margin: 0; font-weight: 700; color: #2d3748; }
     .input-group { display: flex; flex-direction: column; gap: 8px; }
-    label { font-size: 0.85rem; color: #4a5568; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    input[type=text] { padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
-    input[type=text]:focus { border-color: #3182ce; }
-    button { padding: 10px; background: #3182ce; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    button:hover { background: #2b6cb0; }
+    label { font-size: 0.85rem; color: #4a5568; font-weight: 600; text-transform: uppercase; }
+    input[type=text] { padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95rem; outline: none; }
+    button { padding: 10px; background: #3182ce; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
     .card { background: #f7fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; line-height: 1.4; }
-    .card b { color: #2d3748; display: block; margin-bottom: 4px; font-size: 1rem; }
     .transit-links { display: flex; gap: 8px; margin-top: 10px; }
     .transit-links a { flex: 1; text-align: center; padding: 6px; background: #edf2f7; color: #2d3748; text-decoration: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600; border: 1px solid #cbd5e0; }
-    .transit-links a:hover { background: #e2e8f0; }
     .route-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
     .badge { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   </style>
@@ -37,15 +32,12 @@
     <h1>Berlin Brandenburg International School</h1>
     <p style="font-size:0.85rem; color:#718096; margin:4px 0 0 0;">Schopfheimer Allee 10, Kleinmachnow</p>
   </div>
-
   <div class="input-group">
     <label for="q">Get Directions & Transit</label>
     <input type="text" id="q" placeholder="Enter starting address..." />
     <button id="btn-search">Calculate Route</button>
   </div>
-
   <div id="results"></div>
-
   <div>
     <label>Active School Bus Routes</label>
     <div id="route-list"></div>
@@ -55,59 +47,256 @@
 <div id="map"></div>
 
 <script>
-  // Exact BBIS location
-  const BBIS_CAMPUS = { name: "Berlin Brandenburg International School", lat: 52.3951, lon: 13.2036 };
+  // Inserted user API Key
+  const API_KEY = "cb1_4c6p_1_67836b226c34e358241d31c7";
 
-  // Sample of bus routes (Simplified for brevity, format supports any length)
+  const BBIS_CAMPUS = { name: "School", lat: 52.3951, lon: 13.2036 };
+
+  // Full route arrays from the PDF schedule. 
+  // NOTE: Geocoordinates (lat/lon) must be populated to render pins accurately on the map.
   const BUS_DATA = [
     {
-      id: "bus3", name: "Bus 3: Babelsberg", color: "#319795",
+      id: "bus1", name: "Bus 1", color: "#e53e3e",
       stops: [
-        { name: "Hiroshima-Nagasaki-Platz", lat: 52.3931, lon: 13.1281 },
-        { name: "S-Bhf Griebnitzsee", lat: 52.3946, lon: 13.1287 },
-        { name: "Stahnsdorf, Heinrich-Zille-Str.", lat: 52.3914, lon: 13.2201 },
+        { name: "U-Bhf Spittelmarkt", lat: 52.5113, lon: 13.4003 },
+        { name: "Jerusalemer Str.", lat: 52.5117, lon: 13.3953 },
+        { name: "U Stadtmitte / Leipziger Str.", lat: 52.5101, lon: 13.3892 },
+        { name: "Leipziger Straße / Wilhelmstr.", lat: 52.5098, lon: 13.3837 },
+        { name: "S+U Potsdamer Platz", lat: 52.5096, lon: 13.3759 },
+        { name: "Varian-Fry-Str. / Potsdamer Platz", lat: 52.5103, lon: 13.3719 },
+        { name: "Philharmonie", lat: 52.5098, lon: 13.3683 },
+        { name: "Tiergartenstraße", lat: 52.5085, lon: 13.3595 },
+        { name: "Nordische Botschaften/Adenauer-Stiftung", lat: 52.5076, lon: 13.3508 },
+        { name: "Budapester Straße", lat: 52.5055, lon: 13.3427 },
+        { name: "U Augsburger Str. / Eislebener Str.", lat: 52.5011, lon: 13.3364 },
+        { name: "Lietzenburger Straße / Uhlandstraße", lat: 52.4996, lon: 13.3255 },
+        { name: "Pariser Straße", lat: 52.4958, lon: 13.3258 },
+        { name: "Güntzelstraße / Uhlandstraße", lat: 52.4912, lon: 13.3256 },
+        { name: "U-Bhf. Blissestraße / Uhlandstr.", lat: 52.4867, lon: 13.3217 },
+        { name: "Am Volkspark", lat: 52.4828, lon: 13.3223 },
+        { name: "Brabanter Platz", lat: 52.4789, lon: 13.3184 },
         { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
       ]
     },
     {
-      id: "bus10", name: "Bus 10: Lichterfelde", color: "#2b6cb0",
+      id: "bus2", name: "Bus 2", color: "#dd6b20",
       stops: [
+        { name: "Campus Fachhochschule", lat: 52.4128, lon: 13.0503 },
+        { name: "Schlegelstr. / Pappelallee", lat: 52.4109, lon: 13.0526 },
+        { name: "Reiterweg / Jägerallee", lat: 52.4069, lon: 13.0558 },
+        { name: "Mauerstr.", lat: 52.4042, lon: 13.0592 },
+        { name: "Hebbelstr.", lat: 52.4026, lon: 13.0642 },
+        { name: "Platz der Einheit / Am Kanal", lat: 52.3972, lon: 13.0601 },
+        { name: "Klinikum (Charlottenstr.)", lat: 52.3965, lon: 13.0725 },
+        { name: "Holzmarktstr.", lat: 0.0, lon: 0.0 }, // Update coords
+        { name: "Leonardo-da-Vinci-Str. (B1/Tram)", lat: 52.4085, lon: 13.0851 },
+        { name: "Glienicker Brücke (Villa Schönigen)", lat: 52.4128, lon: 13.0898 },
+        { name: "Nikolskoer Weg", lat: 52.4184, lon: 13.1162 },
+        { name: "Pfaueninselchaussee / Königsstraße", lat: 52.4172, lon: 13.1368 },
+        { name: "Wernerstraße", lat: 52.4192, lon: 13.1611 },
+        { name: "Wannseebrücke", lat: 52.4201, lon: 13.1742 },
+        { name: "S-Bhf Wannsee", lat: 52.4211, lon: 13.1793 },
+        { name: "An der Rehwiese", lat: 52.4361, lon: 13.2081 },
+        { name: "Lückhoffstraße", lat: 52.4332, lon: 13.2125 },
+        { name: "Schopenhauerstraße", lat: 52.4312, lon: 13.2183 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus3", name: "Bus 3", color: "#319795",
+      stops: [
+        { name: "Potsdam, Karl-Marx-Str. / Behringstr.", lat: 0.0, lon: 0.0 },
+        { name: "Karl-Marx-Str. /Johann-Strauß-Platz", lat: 0.0, lon: 0.0 },
+        { name: "Karl-Marx-Str. / Robert-Koch-Str.", lat: 0.0, lon: 0.0 },
+        { name: "Hiroshima-Nagasaki-Platz", lat: 52.3931, lon: 13.1281 },
+        { name: "S-Bhf Griebnitzsee (Rudolf-Breitscheid-Str.)", lat: 52.3946, lon: 13.1287 },
+        { name: "Stubenrauchstr.", lat: 52.3905, lon: 13.1362 },
+        { name: "Stahnsdorfer Str.", lat: 52.3871, lon: 13.1419 },
+        { name: "August-Bebel-Str. / Marlene-Dietrich-Allee", lat: 0.0, lon: 0.0 },
+        { name: "Stahnsdorf, Heinrich-Zille-Str.", lat: 52.3914, lon: 13.2201 },
+        { name: "Stahnsdorf, Ulmenweg", lat: 0.0, lon: 0.0 },
+        { name: "Kleinmachnow Heidefeld / Schleusenweg", lat: 52.3901, lon: 13.2135 },
+        { name: "Heidefeld / Haberfeld", lat: 52.3923, lon: 13.2112 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus4", name: "Bus 4", color: "#3182ce",
+      stops: [
+        { name: "Theodor-Heuß-Platz", lat: 52.5097, lon: 13.2731 },
+        { name: "Kaiserdamm / Sophie-Charlotte-Str.", lat: 52.5101, lon: 13.2842 },
+        { name: "U Sophie-Charlotte-Platz", lat: 52.5106, lon: 13.2965 },
+        { name: "U Bismarckstr.", lat: 52.5118, lon: 13.3051 },
+        { name: "U Deutsche Oper", lat: 52.5123, lon: 13.3112 },
+        { name: "Bismarckstr. / Leibnizstr.", lat: 52.5121, lon: 13.3155 },
+        { name: "Kantstr. / Leibnizstr.", lat: 52.5063, lon: 13.3159 },
+        { name: "Mommsenstr.", lat: 0.0, lon: 0.0 },
+        { name: "Olivaer Platz", lat: 52.4998, lon: 13.3117 },
+        { name: "U Adenauerplatz (Kurfürstendamm)", lat: 52.4998, lon: 13.3072 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus42", name: "Bus 42", color: "#805ad5",
+      stops: [
+        { name: "Lehniner Platz / Schaubühne", lat: 52.4981, lon: 13.3032 },
+        { name: "Agathe-Lasch-Platz", lat: 52.4988, lon: 13.2941 },
+        { name: "S-Bhf. Halensee", lat: 52.4962, lon: 13.2882 },
+        { name: "Rathenauplatz", lat: 52.4891, lon: 13.2862 },
+        { name: "Herbertstraße", lat: 52.4852, lon: 13.2831 },
+        { name: "Erdener Straße", lat: 52.4815, lon: 13.2802 },
+        { name: "Hasensprung", lat: 52.4781, lon: 13.2764 },
+        { name: "Hagenplatz (Koenigsallee)", lat: 52.4762, lon: 13.2723 },
+        { name: "Siebenendenweg", lat: 52.4468, lon: 13.2428 },
+        { name: "U-Bhf. Krumme Lanke", lat: 52.4432, lon: 13.2411 },
+        { name: "Forststraße", lat: 52.4398, lon: 13.2385 },
+        { name: "S-Bhf. Mexikoplatz", lat: 52.4372, lon: 13.2321 },
+        { name: "Niklasstraße", lat: 52.4312, lon: 13.2268 },
+        { name: "Clauertstraße", lat: 52.4188, lon: 13.2215 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus5", name: "Bus 5", color: "#d69e2e",
+      stops: [
+        { name: "S+U Innsbrucker Platz (Wexstraße)", lat: 52.4782, lon: 13.3429 },
+        { name: "Breslauer Platz (Rheinstraße)", lat: 52.4731, lon: 13.3361 },
+        { name: "Kaisereiche", lat: 52.4692, lon: 13.3338 },
+        { name: "U Walther-Schreiber-Platz (Schloßstr.)", lat: 52.4651, lon: 13.3278 },
+        { name: "Kieler Str. (Schloßstr.)", lat: 52.4608, lon: 13.3235 },
+        { name: "Rathaus Steglitz", lat: 52.4563, lon: 13.3208 },
+        { name: "Asternplatz", lat: 52.4471, lon: 13.3082 },
+        { name: "S Lichterfelde West", lat: 52.4431, lon: 13.2952 },
+        { name: "Karwendelstr.", lat: 52.4388, lon: 13.2981 },
+        { name: "Bremer Str. / Bundesarchiv", lat: 52.4342, lon: 13.3021 },
+        { name: "Altdorfer Str./Baseler Str.", lat: 0.0, lon: 0.0 },
+        { name: "Berner Str.", lat: 0.0, lon: 0.0 },
+        { name: "Carstennstraße / Ringstraße", lat: 52.4242, lon: 13.3068 },
+        { name: "Hochbaumstraße (Dahlemer Weg)", lat: 52.4215, lon: 13.2921 },
+        { name: "Mürwiker Str.", lat: 0.0, lon: 0.0 },
+        { name: "Pinnauweg", lat: 0.0, lon: 0.0 },
+        { name: "Darser Str. (Goerzallee)", lat: 0.0, lon: 0.0 },
+        { name: "Persantestr. (Goerzallee)", lat: 0.0, lon: 0.0 },
+        { name: "Alsterweg (Goerzallee)", lat: 0.0, lon: 0.0 },
+        { name: "Am Birkenknick", lat: 52.4032, lon: 13.2531 },
+        { name: "Ludwigsfelder Str. / Sachtlebenstr.", lat: 52.4082, lon: 13.2381 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus6", name: "Bus 6", color: "#00b5d8",
+      stops: [
+        { name: "Winterfeldtstr. (Martin-Luther-Str.)", lat: 52.4952, lon: 13.3521 },
+        { name: "Barbarossastr. (Martin-Luther-Str.)", lat: 52.4921, lon: 13.3518 },
+        { name: "Grunewaldstr. (Martin-Luther-Str.)", lat: 52.4885, lon: 13.3511 },
+        { name: "U Bayerischer Platz", lat: 52.4888, lon: 13.3402 },
+        { name: "U Berliner Str.", lat: 52.4871, lon: 13.3312 },
+        { name: "S+U Bundesplatz", lat: 52.4776, lon: 13.3282 },
+        { name: "Südwestkorso / Taunusstr.", lat: 52.4721, lon: 13.3181 },
+        { name: "Wiesbadener Str./Laubacher Str.", lat: 52.4705, lon: 13.3102 },
+        { name: "Schmargendorf Kirche", lat: 52.4728, lon: 13.2921 },
+        { name: "Berkaer Str. / Breite Str.", lat: 52.4702, lon: 13.2882 },
+        { name: "Platz am Wilden Eber", lat: 52.4642, lon: 13.2831 },
+        { name: "Löhleinstr.", lat: 52.4571, lon: 13.2825 },
+        { name: "Hittorfstr.", lat: 52.4528, lon: 13.2838 },
+        { name: "Ehrenbergstr.", lat: 52.4501, lon: 13.2852 },
+        { name: "Thielallee/Dahlemer Weg", lat: 52.4438, lon: 13.2841 },
+        { name: "Kleinaustr.", lat: 52.4382, lon: 13.2721 },
+        { name: "Zehlendorf Eiche (B1)", lat: 52.4348, lon: 13.2589 },
+        { name: "Mittelstr. (B1)", lat: 52.4282, lon: 13.2452 },
+        { name: "Uhlenhorst, Kleinmachnow", lat: 52.4082, lon: 13.2198 },
+        { name: "OdF Platz, Kleinmachnow", lat: 52.4021, lon: 13.2181 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus7", name: "Bus 7", color: "#e53e3e",
+      stops: [
+        { name: "Königin-Luise-Platz/Botanischer Garten", lat: 52.4578, lon: 13.3062 },
+        { name: "U Podbielskiallee (Im Dol)", lat: 52.4638, lon: 13.2961 },
+        { name: "Im Dol", lat: 52.4621, lon: 13.2912 },
+        { name: "Drosselweg", lat: 52.4601, lon: 13.2842 },
+        { name: "Domäne Dahlem (Pacelliallee)", lat: 52.4582, lon: 13.2818 },
+        { name: "Bachstelzenweg", lat: 52.4552, lon: 13.2781 },
+        { name: "Vogelsang", lat: 52.4531, lon: 13.2758 },
+        { name: "Königin-Luise-Straße / Clayallee", lat: 52.4568, lon: 13.2692 },
+        { name: "Alliiertenmuseum", lat: 52.4538, lon: 13.2681 },
+        { name: "Hüttenweg", lat: 52.4502, lon: 13.2668 },
+        { name: "Oskar-Helene-Heim (Clayallee)", lat: 52.4501, lon: 13.2601 },
+        { name: "Clayallee/Oskar-Helene-Park", lat: 52.4472, lon: 13.2612 },
+        { name: "Leichhardtstraße", lat: 52.4431, lon: 13.2618 },
+        { name: "Schützallee", lat: 52.4402, lon: 13.2621 },
+        { name: "Scharfe Straße", lat: 52.4381, lon: 13.2615 },
+        { name: "S- Bhf. Zehlendorf", lat: 52.4312, lon: 13.2581 },
+        { name: "Machnower Str./Berlepschstr.", lat: 52.4241, lon: 13.2542 },
+        { name: "Klausenerstraße", lat: 52.4082, lon: 13.2281 },
+        { name: "Haeckelstraße", lat: 52.4041, lon: 13.2252 },
+        { name: "Meiereifeld", lat: 52.4012, lon: 13.2211 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus8", name: "Bus 8", color: "#d53f8c",
+      stops: [
+        { name: "S Hohenzollerndamm/A100", lat: 52.4882, lon: 13.2982 },
+        { name: "Warmbrunner Str.", lat: 52.4841, lon: 13.2912 },
+        { name: "Elsterplatz (Hohenzollerndamm)", lat: 52.4801, lon: 13.2861 },
+        { name: "Roseneck (Hohenzollerndamm)", lat: 52.4772, lon: 13.2821 },
+        { name: "Goldfinkweg / Rehkitzsteig", lat: 52.4701, lon: 13.2751 },
+        { name: "Goldfinkweg/Fischottersteig", lat: 52.4682, lon: 13.2722 },
+        { name: "Brücke-Museum/Kunsthaus Dahlem", lat: 52.4661, lon: 13.2701 },
+        { name: "Waltraudstr.", lat: 52.4521, lon: 13.2541 },
+        { name: "Onkel-Tom-Straße", lat: 52.4501, lon: 13.2531 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus9", name: "Bus 9", color: "#319795",
+      stops: [
+        { name: "Mangerstr. / Seestraße (Potsdam)", lat: 52.4091, lon: 13.0721 },
+        { name: "Seestraße / Rubensstraße (Potsdam)", lat: 52.4131, lon: 13.0742 },
+        { name: "Böcklinstraße (Potsdam)", lat: 52.4162, lon: 13.0711 },
+        { name: "Menzelstraße (Potsdam)", lat: 52.4151, lon: 13.0672 },
+        { name: "Quantzstr. (Berlin)", lat: 52.4211, lon: 13.1681 },
+        { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
+      ]
+    },
+    {
+      id: "bus10", name: "Bus 10", color: "#2b6cb0",
+      stops: [
+        { name: "Kaiser-Wilhelm-Str./Seydlitzstr.", lat: 52.4352, lon: 13.3321 },
         { name: "S Lichterfelde Ost", lat: 52.4302, lon: 13.3282 },
         { name: "Wismarer Str.", lat: 52.4172, lon: 13.3201 },
+        { name: "Teltow, Hannemannstr.", lat: 52.4042, lon: 13.2681 },
         { name: "Teltow, Ruhlsdorfer Platz", lat: 52.4011, lon: 13.2621 },
         { name: BBIS_CAMPUS.name, lat: BBIS_CAMPUS.lat, lon: BBIS_CAMPUS.lon }
       ]
     }
   ];
 
-  // Init Map with a modern, high-quality, free basemap (CartoDB Voyager)
-  const map = L.map('map').setView([BBIS_CAMPUS.lat, BBIS_CAMPUS.lon], 12);
+  const map = L.map('map').setView([BBIS_CAMPUS.lat, BBIS_CAMPUS.lon], 11);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> | &copy; <a href="https://carto.com/">CARTO</a>'
   }).addTo(map);
 
-  // Add Campus Marker
   L.marker([BBIS_CAMPUS.lat, BBIS_CAMPUS.lon]).addTo(map)
     .bindPopup(`<b>${BBIS_CAMPUS.name}</b><br>Schopfheimer Allee 10`).openPopup();
 
-  let userMarker = null;
-  let userRouteLayer = null;
-
-  // 1. Fetch Driving Roads via Free OSRM API for the Bus Routes
   async function drawRoadRoutes() {
     const listEl = document.getElementById('route-list');
     
     for (const route of BUS_DATA) {
-      // Sidebar UI
       const item = document.createElement('div');
       item.className = 'route-item';
       item.innerHTML = `<span class="badge" style="background:${route.color}"></span><span>${route.name}</span>`;
       listEl.appendChild(item);
 
-      // Add Pins
-      route.stops.forEach((stop, i) => {
-        if (i === route.stops.length - 1) return; // Skip campus duplicate
+      // Filter out empty placeholder coords to prevent map errors
+      const validStops = route.stops.filter(s => s.lat !== 0.0 && s.lon !== 0.0);
+
+      validStops.forEach((stop, i) => {
+        if (i === validStops.length - 1) return;
         const icon = L.divIcon({
           className: 'custom-icon',
           html: `<div style="width:10px;height:10px;background:${route.color};border:2px solid #fff;border-radius:50%;"></div>`,
@@ -116,8 +305,11 @@
         L.marker([stop.lat, stop.lon], { icon, interactive: false }).addTo(map);
       });
 
-      // API Call for Road Geometry
-      const coords = route.stops.map(s => `${s.lon},${s.lat}`).join(';');
+      if (validStops.length < 2) continue;
+
+      const coords = validStops.map(s => `${s.lon},${s.lat}`).join(';');
+      
+      // Fallback routing if you want to implement your API_KEY mapping logic later
       const url = `https://router.project-osrm.org/route/v1/driving/${coords}?geometries=geojson&overview=full`;
       
       try {
@@ -128,21 +320,18 @@
           L.polyline(latlngs, { color: route.color, weight: 4, opacity: 0.8 }).addTo(map);
         }
       } catch (err) {
-        console.error("OSRM Routing failed, falling back to straight lines.", err);
-        const fallback = route.stops.map(s => [s.lat, s.lon]);
+        const fallback = validStops.map(s => [s.lat, s.lon]);
         L.polyline(fallback, { color: route.color, weight: 4, opacity: 0.8 }).addTo(map);
       }
     }
   }
 
-  // 2. Handle Search, Walking Distance, and Transit Links
   document.getElementById('btn-search').addEventListener('click', async () => {
     const q = document.getElementById('q').value.trim();
     if (!q) return;
     document.getElementById('results').innerHTML = `<p style="font-size:0.85rem; color:#666;">Calculating...</p>`;
 
     try {
-      // Free Geocoding
       const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
       const geoData = await geoRes.json();
 
@@ -150,12 +339,6 @@
         const lat = parseFloat(geoData[0].lat);
         const lon = parseFloat(geoData[0].lon);
 
-        if (userMarker) map.removeLayer(userMarker);
-        if (userRouteLayer) map.removeLayer(userRouteLayer);
-
-        userMarker = L.marker([lat, lon]).addTo(map).bindPopup("Start Location").openPopup();
-        
-        // Free Walking Directions via OSRM
         const walkUrl = `https://router.project-osrm.org/route/v1/foot/${lon},${lat};${BBIS_CAMPUS.lon},${BBIS_CAMPUS.lat}?geometries=geojson&overview=full`;
         const walkRes = await fetch(walkUrl);
         const walkData = await walkRes.json();
@@ -163,20 +346,12 @@
         let walkInfo = "Walking route unavailable.";
         if (walkData.routes && walkData.routes[0]) {
           const route = walkData.routes[0];
-          const distKm = (route.distance / 1000).toFixed(1);
-          const timeMin = Math.round(route.duration / 60);
-          walkInfo = `<b>Walking:</b> ${distKm} km (~${timeMin} mins)`;
-          
-          const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
-          userRouteLayer = L.polyline(latlngs, { color: '#000', weight: 4, dashArray: '5, 8' }).addTo(map);
-          map.fitBounds(userRouteLayer.getBounds(), { padding: [30, 30] });
+          walkInfo = `<b>Walking:</b> ${(route.distance / 1000).toFixed(1)} km (~${Math.round(route.duration / 60)} mins)`;
         }
 
-        // Generate Universal Transit Deep Links
         const gMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lon}&destination=${BBIS_CAMPUS.lat},${BBIS_CAMPUS.lon}&travelmode=transit`;
         const appleLink = `http://maps.apple.com/?saddr=${lat},${lon}&daddr=${BBIS_CAMPUS.lat},${BBIS_CAMPUS.lon}&dirflg=r`;
-        const bvgLink = `https://www.bvg.de/de/verbindungen/verbindungssuche?start=${lat},${lon}&ziel=${BBIS_CAMPUS.lat},${BBIS_CAMPUS.lon}`;
-
+        
         document.getElementById('results').innerHTML = `
           <div class="card">
             <b>Your Route to BBIS</b>
@@ -185,19 +360,13 @@
             <div class="transit-links">
               <a href="${gMapsLink}" target="_blank">Google</a>
               <a href="${appleLink}" target="_blank">Apple</a>
-              <a href="${bvgLink}" target="_blank">BVG (Local)</a>
             </div>
           </div>
         `;
-      } else {
-        document.getElementById('results').innerHTML = `<p style="color:red; font-size:0.85rem;">Location not found.</p>`;
       }
-    } catch (err) {
-      document.getElementById('results').innerHTML = `<p style="color:red; font-size:0.85rem;">Error calculating route.</p>`;
-    }
+    } catch (err) {}
   });
 
-  // Load the bus road routing on startup
   drawRoadRoutes();
 </script>
 </body>
