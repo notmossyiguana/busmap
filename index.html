@@ -19,7 +19,7 @@
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body { display: flex; font: 14px/1.4 system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--bg); }
-    aside { width: 340px; max-width: 42vw; overflow-y: auto; padding: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+    aside { width: 360px; max-width: 42vw; overflow-y: auto; padding: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
     #wrap { flex: 1; position: relative; min-width: 0; }
     #map { position: absolute; inset: 0; background: #e6ebe7; }
     #warn { position: absolute; z-index: 1000; left: 50%; top: 10px; transform: translateX(-50%); background: #fff3cd; border: 1px solid #e0c36a; border-radius: 6px; padding: 6px 10px; max-width: 90%; font-size: 13px; }
@@ -33,8 +33,8 @@
     .res.best { border-color: var(--acc); box-shadow: inset 3px 0 0 var(--acc); }
     .res b { font-size: 15px; }
     .mut, .res small { color: var(--mut); }
-    .rt { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
-    .rt .mut { margin-left: auto; }
+    .rt { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+    .rt .mut { margin-left: auto; font-size: 12px; }
     .sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex: none; }
     .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
     #prog { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 4px; }
@@ -98,38 +98,242 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <script>
-  // BBIS Bus Routes Sample Data
+  // Complete BBIS Bus Schedule Data 2026-2027
   const ROUTE_DATA = [
     {
-      id: "line1",
-      name: "Route 1 - Berlin West / Charlottenburg",
-      color: "#0d6b4f",
+      id: "bus1",
+      name: "Bus 1: Spittelmarkt – Tiergarten – Wilmersdorf",
+      color: "#e53e3e",
       stops: [
-        { id: "s1", name: "Theodor-Heuss-Platz", lat: 52.5097, lon: 13.2731 },
-        { id: "s2", name: "Messe Nord / ICC", lat: 52.5072, lon: 13.2825 },
-        { id: "s3", name: "Grunewald S-Bahn", lat: 52.4886, lon: 13.2612 },
-        { id: "s4", name: "BBIS Campus Kleinmachnow", lat: 52.3934, lon: 13.2086 }
+        { id: "b1_1", name: "U-Bhf Spittelmarkt", pickup: "06:50", drop: "16:05", lat: 52.5113, lon: 13.4003 },
+        { id: "b1_2", name: "Jerusalemer Str.", pickup: "06:51", drop: "16:04", lat: 52.5117, lon: 13.3953 },
+        { id: "b1_3", name: "U Stadtmitte / Leipziger Str.", pickup: "06:52", drop: "16:02", lat: 52.5101, lon: 13.3892 },
+        { id: "b1_4", name: "Leipziger Straße / Wilhelmstr.", pickup: "06:53", drop: "16:00", lat: 52.5098, lon: 13.3837 },
+        { id: "b1_5", name: "S+U Potsdamer Platz", pickup: "06:55", drop: "15:55", lat: 52.5096, lon: 13.3759 },
+        { id: "b1_6", name: "Varian-Fry-Str. / Potsdamer Platz", pickup: "06:57", drop: "15:52", lat: 52.5103, lon: 13.3719 },
+        { id: "b1_7", name: "Philharmonie", pickup: "06:59", drop: "15:50", lat: 52.5098, lon: 13.3683 },
+        { id: "b1_8", name: "Tiergartenstraße", pickup: "07:02", drop: "15:47", lat: 52.5085, lon: 13.3595 },
+        { id: "b1_9", name: "Nordische Botschaften/Adenauer-Stiftung", pickup: "07:04", drop: "15:45", lat: 52.5076, lon: 13.3508 },
+        { id: "b1_10", name: "Budapester Straße", pickup: "07:05", drop: "15:43", lat: 52.5055, lon: 13.3427 },
+        { id: "b1_11", name: "U Augsburger Str. / Eislebener Str.", pickup: "07:07", drop: "15:41", lat: 52.5011, lon: 13.3364 },
+        { id: "b1_12", name: "Lietzenburger Straße / Uhlandstraße", pickup: "07:09", drop: "15:39", lat: 52.4996, lon: 13.3255 },
+        { id: "b1_13", name: "Pariser Straße", pickup: "07:12", drop: "15:37", lat: 52.4958, lon: 13.3258 },
+        { id: "b1_14", name: "Güntzelstraße / Uhlandstraße", pickup: "07:14", drop: "15:36", lat: 52.4912, lon: 13.3256 },
+        { id: "b1_15", name: "U-Bhf. Blissestraße / Uhlandstr.", pickup: "07:15", drop: "15:35", lat: 52.4867, lon: 13.3217 },
+        { id: "b1_16", name: "Am Volkspark", pickup: "07:17", drop: "15:34", lat: 52.4828, lon: 13.3223 },
+        { id: "b1_17", name: "Brabanter Platz", pickup: "07:18", drop: "15:33", lat: 52.4789, lon: 13.3184 },
+        { id: "b1_18", name: "BBIS School Campus", pickup: "07:50", drop: "15:00", lat: 52.3934, lon: 13.2086 }
       ]
     },
     {
-      id: "line2",
-      name: "Route 2 - Berlin South / Steglitz & Zehlendorf",
-      color: "#3182ce",
-      stops: [
-        { id: "s5", name: "Schlossstraße / Rathaus Steglitz", lat: 52.4563, lon: 13.3208 },
-        { id: "s6", name: "Dahlem Dorf", lat: 52.4578, lon: 13.2894 },
-        { id: "s7", name: "Zehlendorf Eichenallee", lat: 52.4348, lon: 13.2589 },
-        { id: "s8", name: "BBIS Campus Kleinmachnow", lat: 52.3934, lon: 13.2086 }
-      ]
-    },
-    {
-      id: "line3",
-      name: "Route 3 - Potsdam Central",
+      id: "bus2",
+      name: "Bus 2: Potsdam – Wannsee – Grunewald",
       color: "#dd6b20",
       stops: [
-        { id: "s9", name: "Potsdam Hbf", lat: 52.3917, lon: 13.0671 },
-        { id: "s10", name: "Babelsberg Park", lat: 52.3992, lon: 13.0933 },
-        { id: "s11", name: "BBIS Campus Kleinmachnow", lat: 52.3934, lon: 13.2086 }
+        { id: "b2_1", name: "Campus Fachhochschule", pickup: "06:55", drop: "15:59", lat: 52.4128, lon: 13.0503 },
+        { id: "b2_2", name: "Schlegelstr. / Pappelallee", pickup: "06:57", drop: "15:57", lat: 52.4109, lon: 13.0526 },
+        { id: "b2_3", name: "Reiterweg / Jägerallee", pickup: "07:00", drop: "15:54", lat: 52.4069, lon: 13.0558 },
+        { id: "b2_4", name: "Mauerstr. (Dorint Hotel)", pickup: "07:05", drop: "15:51", lat: 52.4042, lon: 13.0592 },
+        { id: "b2_5", name: "Hebbelstr.", pickup: "07:07", drop: "15:48", lat: 52.4026, lon: 13.0642 },
+        { id: "b2_6", name: "Platz der Einheit / Am Kanal", pickup: "07:10", drop: "15:43", lat: 52.3972, lon: 13.0601 },
+        { id: "b2_7", name: "Klinikum (Charlottenstr.) / Holzmarktstr.", pickup: "07:12", drop: "15:40", lat: 52.3965, lon: 13.0725 },
+        { id: "b2_8", name: "Leonardo-da-Vinci-Str. (B1/Tram)", pickup: "07:13", drop: "15:35", lat: 52.4085, lon: 13.0851 },
+        { id: "b2_9", name: "Glienicker Brücke (Villa Schöningen)", pickup: "07:15", drop: "15:34", lat: 52.4128, lon: 13.0898 },
+        { id: "b2_10", name: "Nikolskoer Weg", pickup: "07:17", drop: "15:32", lat: 52.4184, lon: 13.1162 },
+        { id: "b2_11", name: "Pfaueninselchaussee / Königsstraße", pickup: "07:21", drop: "15:28", lat: 52.4172, lon: 13.1368 },
+        { id: "b2_12", name: "Wernerstraße", pickup: "07:22", drop: "15:27", lat: 52.4192, lon: 13.1611 },
+        { id: "b2_13", name: "Wannseebrücke", pickup: "07:24", drop: "15:25", lat: 52.4201, lon: 13.1742 },
+        { id: "b2_14", name: "S-Bhf Wannsee", pickup: "07:25", drop: "15:24", lat: 52.4211, lon: 13.1793 },
+        { id: "b2_15", name: "An der Rehwiese", pickup: "07:32", drop: "15:18", lat: 52.4361, lon: 13.2081 },
+        { id: "b2_16", name: "Lückhoffstraße", pickup: "07:33", drop: "15:17", lat: 52.4332, lon: 13.2125 },
+        { id: "b2_17", name: "Schopenhauerstraße", pickup: "07:35", drop: "15:16", lat: 52.4312, lon: 13.2183 },
+        { id: "b2_18", name: "BBIS School Campus", pickup: "07:53", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus3",
+      name: "Bus 3: Babelsberg – Stahnsdorf – Schleusenweg",
+      color: "#319795",
+      stops: [
+        { id: "b3_1", name: "Potsdam, Karl-Marx-Str. / Behringstr.", pickup: "07:08", drop: "15:45", lat: 52.3932, lon: 13.1119 },
+        { id: "b3_2", name: "Karl-Marx-Str. / Johann-Strauß-Platz", pickup: "07:11", drop: "15:42", lat: 52.3921, lon: 13.1205 },
+        { id: "b3_3", name: "Karl-Marx-Str. / Robert-Koch-Str.", pickup: "07:14", drop: "15:40", lat: 52.3912, lon: 13.1258 },
+        { id: "b3_4", name: "Hiroshima-Nagasaki-Platz", pickup: "07:14", drop: "15:38", lat: 52.3931, lon: 13.1281 },
+        { id: "b3_5", name: "S-Bhf Griebnitzsee (Rudolf-Breitscheid-Str.)", pickup: "07:16", drop: "15:37", lat: 52.3946, lon: 13.1287 },
+        { id: "b3_6", name: "Stubenrauchstr.", pickup: "07:18", drop: "15:35", lat: 52.3905, lon: 13.1362 },
+        { id: "b3_7", name: "Stahnsdorfer Str.", pickup: "07:22", drop: "15:31", lat: 52.3871, lon: 13.1419 },
+        { id: "b3_8", name: "August-Bebel-Str. / Marlene-Dietrich-Allee", pickup: "07:25", drop: "15:29", lat: 52.3858, lon: 13.1248 },
+        { id: "b3_9", name: "Stahnsdorf, Heinrich-Zille-Str.", pickup: "07:35", drop: "15:17", lat: 52.3914, lon: 13.2201 },
+        { id: "b3_10", name: "Stahnsdorf, Ulmenweg", pickup: "07:38", drop: "15:16", lat: 52.3882, lon: 13.2223 },
+        { id: "b3_11", name: "Kleinmachnow Heidefeld / Schleusenweg", pickup: "07:43", drop: "15:10", lat: 52.3901, lon: 13.2135 },
+        { id: "b3_12", name: "Heidefeld / Haberfeld", pickup: "07:45", drop: "15:08", lat: 52.3923, lon: 13.2112 },
+        { id: "b3_13", name: "BBIS School Campus", pickup: "07:52", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus4",
+      name: "Bus 4: Charlottenburg – Kurfürstendamm",
+      color: "#3182ce",
+      stops: [
+        { id: "b4_1", name: "Theodor-Heuß-Platz", pickup: "06:56", drop: "16:00", lat: 52.5097, lon: 13.2731 },
+        { id: "b4_2", name: "Kaiserdamm / Sophie-Charlotte-Str.", pickup: "06:58", drop: "15:55", lat: 52.5101, lon: 13.2842 },
+        { id: "b4_3", name: "U Sophie-Charlotte-Platz", pickup: "06:59", drop: "15:54", lat: 52.5106, lon: 13.2965 },
+        { id: "b4_4", name: "U Bismarckstr.", pickup: "07:00", drop: "15:52", lat: 52.5118, lon: 13.3051 },
+        { id: "b4_5", name: "U Deutsche Oper", pickup: "07:01", drop: "15:51", lat: 52.5123, lon: 13.3112 },
+        { id: "b4_6", name: "Bismarckstr. / Leibnizstr.", pickup: "07:02", drop: "15:48", lat: 52.5121, lon: 13.3155 },
+        { id: "b4_7", name: "Kantstr. / Leibnizstr.", pickup: "07:05", drop: "15:47", lat: 52.5063, lon: 13.3159 },
+        { id: "b4_8", name: "Olivaer Platz", pickup: "07:10", drop: "15:43", lat: 52.4998, lon: 13.3117 },
+        { id: "b4_9", name: "U Adenauerplatz (Kurfürstendamm)", pickup: "07:13", drop: "15:41", lat: 52.4998, lon: 13.3072 },
+        { id: "b4_10", name: "BBIS School Campus", pickup: "07:50", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus42",
+      name: "Bus 42: Halensee – Grunewald – Zehlendorf",
+      color: "#805ad5",
+      stops: [
+        { id: "b42_1", name: "Lehniner Platz / Schaubühne", pickup: "07:13", drop: "15:39", lat: 52.4981, lon: 13.3032 },
+        { id: "b42_2", name: "Agathe-Lasch-Platz", pickup: "07:15", drop: "15:37", lat: 52.4988, lon: 13.2941 },
+        { id: "b42_3", name: "S-Bhf. Halensee", pickup: "07:16", drop: "15:35", lat: 52.4962, lon: 13.2882 },
+        { id: "b42_4", name: "Rathenauplatz", pickup: "07:18", drop: "15:34", lat: 52.4891, lon: 13.2862 },
+        { id: "b42_5", name: "Herbertstraße", pickup: "07:20", drop: "15:32", lat: 52.4852, lon: 13.2831 },
+        { id: "b42_6", name: "Erdener Straße", pickup: "07:21", drop: "15:30", lat: 52.4815, lon: 13.2802 },
+        { id: "b42_7", name: "Hasensprung", pickup: "07:22", drop: "15:29", lat: 52.4781, lon: 13.2764 },
+        { id: "b42_8", name: "Hagenplatz (Koenigsallee)", pickup: "07:24", drop: "15:28", lat: 52.4762, lon: 13.2723 },
+        { id: "b42_9", name: "Siebenendenweg", pickup: "07:31", drop: "15:21", lat: 52.4468, lon: 13.2428 },
+        { id: "b42_10", name: "U-Bhf. Krumme Lanke", pickup: "07:32", drop: "15:20", lat: 52.4432, lon: 13.2411 },
+        { id: "b42_11", name: "Forststraße", pickup: "07:33", drop: "15:18", lat: 52.4398, lon: 13.2385 },
+        { id: "b42_12", name: "S-Bhf. Mexikoplatz", pickup: "07:35", drop: "15:17", lat: 52.4372, lon: 13.2321 },
+        { id: "b42_13", name: "Niklasstraße", pickup: "07:37", drop: "15:16", lat: 52.4312, lon: 13.2268 },
+        { id: "b42_14", name: "Clauertstraße", pickup: "07:40", drop: "15:15", lat: 52.4188, lon: 13.2215 },
+        { id: "b42_15", name: "BBIS School Campus", pickup: "07:53", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus5",
+      name: "Bus 5: Schöneberg – Steglitz – Lichterfelde",
+      color: "#d69e2e",
+      stops: [
+        { id: "b5_1", name: "S+U Innsbrucker Platz (Wexstraße)", pickup: "06:56", drop: "15:56", lat: 52.4782, lon: 13.3429 },
+        { id: "b5_2", name: "Breslauer Platz (Rheinstraße)", pickup: "07:00", drop: "15:53", lat: 52.4731, lon: 13.3361 },
+        { id: "b5_3", name: "Kaisereiche", pickup: "07:01", drop: "15:52", lat: 52.4692, lon: 13.3338 },
+        { id: "b5_4", name: "U Walther-Schreiber-Platz (Schloßstr.)", pickup: "07:03", drop: "15:50", lat: 52.4651, lon: 13.3278 },
+        { id: "b5_5", name: "Kieler Str. (Schloßstr.)", pickup: "07:04", drop: "15:48", lat: 52.4608, lon: 13.3235 },
+        { id: "b5_6", name: "Rathaus Steglitz", pickup: "07:06", drop: "15:47", lat: 52.4563, lon: 13.3208 },
+        { id: "b5_7", name: "Asternplatz", pickup: "07:10", drop: "15:42", lat: 52.4471, lon: 13.3082 },
+        { id: "b5_8", name: "S Lichterfelde West", pickup: "07:13", drop: "15:39", lat: 52.4431, lon: 13.2952 },
+        { id: "b5_9", name: "Karwendelstr.", pickup: "07:14", drop: "15:37", lat: 52.4388, lon: 13.2981 },
+        { id: "b5_10", name: "Bremer Str. / Bundesarchiv", pickup: "07:17", drop: "15:37", lat: 52.4342, lon: 13.3021 },
+        { id: "b5_11", name: "Altdorfer Str./Baseler Str. / Berner Str.", pickup: "07:19", drop: "15:36", lat: 52.4281, lon: 13.3051 },
+        { id: "b5_12", name: "Carstennstraße / Ringstraße", pickup: "07:21", drop: "15:35", lat: 52.4242, lon: 13.3068 },
+        { id: "b5_13", name: "Hochbaumstraße (Dahlemer Weg)", pickup: "07:23", drop: "15:33", lat: 52.4215, lon: 13.2921 },
+        { id: "b5_14", name: "Mürwiker Str.", pickup: "07:26", drop: "15:31", lat: 52.4172, lon: 13.2842 },
+        { id: "b5_15", name: "Pinnauweg", pickup: "07:28", drop: "15:29", lat: 52.4135, lon: 13.2798 },
+        { id: "b5_16", name: "Darser Str. (Goerzallee)", pickup: "07:33", drop: "15:26", lat: 52.4111, lon: 13.2712 },
+        { id: "b5_17", name: "Persantestr. (Goerzallee)", pickup: "07:33", drop: "15:26", lat: 52.4092, lon: 13.2681 },
+        { id: "b5_18", name: "Alsterweg (Goerzallee)", pickup: "07:34", drop: "15:25", lat: 52.4065, lon: 13.2625 },
+        { id: "b5_19", name: "Am Birkenknick", pickup: "07:36", drop: "15:20", lat: 52.4032, lon: 13.2531 },
+        { id: "b5_20", name: "Ludwigsfelder Str. / Sachtlebenstr.", pickup: "07:40", drop: "15:15", lat: 52.4082, lon: 13.2381 },
+        { id: "b5_21", name: "BBIS School Campus", pickup: "07:55", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus6",
+      name: "Bus 6: Wilmersdorf – Dahlem – Zehlendorf",
+      color: "#00b5d8",
+      stops: [
+        { id: "b6_1", name: "Winterfeldtstr. (Martin-Luther-Str.)", pickup: "06:58", drop: "15:55", lat: 52.4952, lon: 13.3521 },
+        { id: "b6_2", name: "Barbarossastr. (Martin-Luther-Str.)", pickup: "06:59", drop: "15:53", lat: 52.4921, lon: 13.3518 },
+        { id: "b6_3", name: "Grunewaldstr. (Martin-Luther-Str.)", pickup: "07:00", drop: "15:52", lat: 52.4885, lon: 13.3511 },
+        { id: "b6_4", name: "U Bayerischer Platz", pickup: "07:02", drop: "15:50", lat: 52.4888, lon: 13.3402 },
+        { id: "b6_5", name: "U Berliner Str.", pickup: "07:04", drop: "15:47", lat: 52.4871, lon: 13.3312 },
+        { id: "b6_6", name: "S+U Bundesplatz", pickup: "07:06", drop: "15:46", lat: 52.4776, lon: 13.3282 },
+        { id: "b6_7", name: "Südwestkorso / Taunusstr.", pickup: "07:08", drop: "15:44", lat: 52.4721, lon: 13.3181 },
+        { id: "b6_8", name: "Wiesbadener Str./Laubacher Str.", pickup: "07:10", drop: "15:42", lat: 52.4705, lon: 13.3102 },
+        { id: "b6_9", name: "Schmargendorf Kirche", pickup: "07:14", drop: "15:38", lat: 52.4728, lon: 13.2921 },
+        { id: "b6_10", name: "Berkaer Str. / Breite Str.", pickup: "07:16", drop: "15:36", lat: 52.4702, lon: 13.2882 },
+        { id: "b6_11", name: "Platz am Wilden Eber", pickup: "07:18", drop: "15:35", lat: 52.4642, lon: 13.2831 },
+        { id: "b6_12", name: "Löhleinstr.", pickup: "07:21", drop: "15:31", lat: 52.4571, lon: 13.2825 },
+        { id: "b6_13", name: "Hittorfstr.", pickup: "07:23", drop: "15:29", lat: 52.4528, lon: 13.2838 },
+        { id: "b6_14", name: "Ehrenbergstr.", pickup: "07:24", drop: "15:28", lat: 52.4501, lon: 13.2852 },
+        { id: "b6_15", name: "Thielallee/Dahlemer Weg", pickup: "07:26", drop: "15:25", lat: 52.4438, lon: 13.2841 },
+        { id: "b6_16", name: "Kleinaustr.", pickup: "07:28", drop: "15:23", lat: 52.4382, lon: 13.2721 },
+        { id: "b6_17", name: "Zehlendorf Eiche (B1)", pickup: "07:30", drop: "15:22", lat: 52.4348, lon: 13.2589 },
+        { id: "b6_18", name: "Mittelstr. (B1)", pickup: "07:37", drop: "15:18", lat: 52.4282, lon: 13.2452 },
+        { id: "b6_19", name: "Uhlenhorst, Kleinmachnow", pickup: "07:39", drop: "15:10", lat: 52.4082, lon: 13.2198 },
+        { id: "b6_20", name: "OdF Platz, Kleinmachnow", pickup: "07:40", drop: "15:09", lat: 52.4021, lon: 13.2181 },
+        { id: "b6_21", name: "BBIS School Campus", pickup: "07:47", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus7",
+      name: "Bus 7: Botanical Garden – Clayallee – Zehlendorf",
+      color: "#e53e3e",
+      stops: [
+        { id: "b7_1", name: "Königin-Luise-Platz/Botanischer Garten", pickup: "07:15", drop: "15:44", lat: 52.4578, lon: 13.3062 },
+        { id: "b7_2", name: "U Podbielskiallee (Im Dol)", pickup: "07:19", drop: "15:41", lat: 52.4638, lon: 13.2961 },
+        { id: "b7_3", name: "Im Dol", pickup: "07:21", drop: "15:39", lat: 52.4621, lon: 13.2912 },
+        { id: "b7_4", name: "Drosselweg", pickup: "07:23", drop: "15:36", lat: 52.4601, lon: 13.2842 },
+        { id: "b7_5", name: "Domäne Dahlem (Pacelliallee)", pickup: "07:24", drop: "15:35", lat: 52.4582, lon: 13.2818 },
+        { id: "b7_6", name: "Bachstelzenweg", pickup: "07:25", drop: "15:34", lat: 52.4552, lon: 13.2781 },
+        { id: "b7_7", name: "Vogelsang", pickup: "07:26", drop: "15:33", lat: 52.4531, lon: 13.2758 },
+        { id: "b7_8", name: "Königin-Luise-Straße / Clayallee", pickup: "07:28", drop: "15:31", lat: 52.4568, lon: 13.2692 },
+        { id: "b7_9", name: "Alliiertenmuseum", pickup: "07:29", drop: "15:30", lat: 52.4538, lon: 13.2681 },
+        { id: "b7_10", name: "Hüttenweg", pickup: "07:30", drop: "15:29", lat: 52.4502, lon: 13.2668 },
+        { id: "b7_11", name: "Oskar-Helene-Heim (Clayallee)", pickup: "07:32", drop: "15:28", lat: 52.4501, lon: 13.2601 },
+        { id: "b7_12", name: "Clayallee/Oskar-Helene-Park", pickup: "07:33", drop: "15:27", lat: 52.4472, lon: 13.2612 },
+        { id: "b7_13", name: "Leichhardtstraße", pickup: "07:34", drop: "15:26", lat: 52.4431, lon: 13.2618 },
+        { id: "b7_14", name: "Schützallee", pickup: "07:35", drop: "15:25", lat: 52.4402, lon: 13.2621 },
+        { id: "b7_15", name: "Scharfe Straße", pickup: "07:35", drop: "15:24", lat: 52.4381, lon: 13.2615 },
+        { id: "b7_16", name: "S-Bhf. Zehlendorf", pickup: "07:37", drop: "15:22", lat: 52.4312, lon: 13.2581 },
+        { id: "b7_17", name: "Machnower Str./Berlepschstr.", pickup: "07:38", drop: "15:18", lat: 52.4241, lon: 13.2542 },
+        { id: "b7_18", name: "Klausenerstraße", pickup: "07:43", drop: "15:13", lat: 52.4082, lon: 13.2281 },
+        { id: "b7_19", name: "Haeckelstraße", pickup: "07:44", drop: "15:12", lat: 52.4041, lon: 13.2252 },
+        { id: "b7_20", name: "Meiereifeld", pickup: "07:45", drop: "15:11", lat: 52.4012, lon: 13.2211 },
+        { id: "b7_21", name: "BBIS School Campus", pickup: "07:52", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus8",
+      name: "Bus 8: Schmargendorf – Roseneck – Onkel-Tom-Str.",
+      color: "#d53f8c",
+      stops: [
+        { id: "b8_1", name: "S Hohenzollerndamm/A100", pickup: "07:13", drop: "--:--", lat: 52.4882, lon: 13.2982 },
+        { id: "b8_2", name: "Warmbrunner Str.", pickup: "07:14", drop: "15:42", lat: 52.4841, lon: 13.2912 },
+        { id: "b8_3", name: "Elsterplatz (Hohenzollerndamm)", pickup: "07:16", drop: "15:40", lat: 52.4801, lon: 13.2861 },
+        { id: "b8_4", name: "Roseneck (Hohenzollerndamm)", pickup: "07:17", drop: "15:39", lat: 52.4772, lon: 13.2821 },
+        { id: "b8_5", name: "Goldfinkweg / Rehkitzsteig", pickup: "07:20", drop: "15:34", lat: 52.4701, lon: 13.2751 },
+        { id: "b8_6", name: "Goldfinkweg / Fischottersteig", pickup: "07:22", drop: "15:36", lat: 52.4682, lon: 13.2722 },
+        { id: "b8_7", name: "Brücke-Museum/Kunsthaus Dahlem", pickup: "07:24", drop: "15:30", lat: 52.4661, lon: 13.2701 },
+        { id: "b8_8", name: "Waltraudstr.", pickup: "07:29", drop: "15:25", lat: 52.4521, lon: 13.2541 },
+        { id: "b8_9", name: "Onkel-Tom-Straße", pickup: "07:30", drop: "15:24", lat: 52.4501, lon: 13.2531 },
+        { id: "b8_10", name: "BBIS School Campus", pickup: "07:53", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus9",
+      name: "Bus 9 (Van): Potsdam Seeufer / Quantzstr.",
+      color: "#319795",
+      stops: [
+        { id: "b9_1", name: "Mangerstr. / Seestraße (Potsdam)", pickup: "07:16", drop: "15:37", lat: 52.4091, lon: 13.0721 },
+        { id: "b9_2", name: "Seestraße / Rubensstraße (Potsdam)", pickup: "07:18", drop: "15:35", lat: 52.4131, lon: 13.0742 },
+        { id: "b9_3", name: "Böcklinstraße (Potsdam)", pickup: "07:21", drop: "15:32", lat: 52.4162, lon: 13.0711 },
+        { id: "b9_4", name: "Menzelstraße (Potsdam)", pickup: "07:23", drop: "15:30", lat: 52.4151, lon: 13.0672 },
+        { id: "b9_5", name: "Quantzstr. (Berlin)", pickup: "07:33", drop: "15:20", lat: 52.4211, lon: 13.1681 },
+        { id: "b9_6", name: "BBIS School Campus", pickup: "07:50", drop: "15:00", lat: 52.3934, lon: 13.2086 }
+      ]
+    },
+    {
+      id: "bus10",
+      name: "Bus 10 (Van): Lichterfelde Ost – Teltow",
+      color: "#2b6cb0",
+      stops: [
+        { id: "b10_1", name: "Kaiser-Wilhelm-Str./Seydlitzstr.", pickup: "07:10", drop: "15:40", lat: 52.4352, lon: 13.3321 },
+        { id: "b10_2", name: "S Lichterfelde Ost", pickup: "07:12", drop: "15:34", lat: 52.4302, lon: 13.3282 },
+        { id: "b10_3", name: "Wismarer Str.", pickup: "07:20", drop: "15:28", lat: 52.4172, lon: 13.3201 },
+        { id: "b10_4", name: "Teltow, Hannemannstr.", pickup: "07:30", drop: "15:20", lat: 52.4042, lon: 13.2681 },
+        { id: "b10_5", name: "Teltow, Ruhlsdorfer Platz", pickup: "07:35", drop: "15:15", lat: 52.4011, lon: 13.2621 },
+        { id: "b10_6", name: "BBIS School Campus", pickup: "07:50", drop: "15:00", lat: 52.3934, lon: 13.2086 }
       ]
     }
   ];
@@ -154,7 +358,7 @@
   let customPositions = JSON.parse(localStorage.getItem('bbis_bus_custom_pos') || '{}');
 
   function initMap() {
-    map = L.map('map', { zoomControl: true }).setView([52.44, 13.22], 11);
+    map = L.map('map', { zoomControl: true }).setView([52.44, 13.24], 11);
     layersGroup.addTo(map);
 
     setBasemap('carto');
@@ -204,7 +408,7 @@
 
       const latLngs = route.stops.map(getStopCoords);
 
-      // Route Polyline
+      // Route Line
       L.polyline(latLngs, {
         color: route.color,
         weight: 4,
@@ -222,7 +426,12 @@
         });
 
         const marker = L.marker(coords, { icon: icon, draggable: true }).addTo(layersGroup);
-        marker.bindPopup(`<b>${stop.name}</b><br>${route.name}<br><small>Stop #${index + 1}</small>`);
+        marker.bindPopup(`
+          <b>${stop.name}</b><br>
+          <small>${route.name}</small><br>
+          <span><b>Morning Pickup:</b> ${stop.pickup}</span><br>
+          <span><b>Afternoon Drop:</b> ${stop.drop}</span>
+        `);
 
         marker.on('dragend', (e) => {
           const newPos = e.target.getLatLng();
@@ -260,7 +469,6 @@
     });
   }
 
-  // Find Nearest Stop
   function findNearestStop(lat, lon) {
     let bestStop = null;
     let minDistance = Infinity;
@@ -287,7 +495,7 @@
 
     const icon = L.divIcon({
       className: 'me-icon',
-      html: `<div class="me">📍</div>`,
+      html: `<div style="font-size:24px;line-height:1;filter:drop-shadow(0 1px 1px #0008)">📍</div>`,
       iconSize: [26, 26],
       iconAnchor: [13, 26]
     });
@@ -303,12 +511,13 @@
       out.innerHTML = `
         <div class="res best">
           <b>Nearest Stop: ${res.stop.name}</b><br>
-          <span>${res.route.name}</span><br>
-          <small>~${distKm} km away from search location</small>
+          <small>${res.route.name}</small><br>
+          <span><b>Morning:</b> ${res.stop.pickup} | <b>Afternoon:</b> ${res.stop.drop}</span><br>
+          <small>~${distKm} km away from pin</small>
         </div>
       `;
     } else {
-      out.innerHTML = `<div class="res">No active routes selected.</div>`;
+      out.innerHTML = `<div class="res">No active bus routes selected.</div>`;
     }
   }
 
@@ -361,7 +570,7 @@
     );
   });
 
-  // Action Buttons
+  // Controls
   document.getElementById('all').addEventListener('click', () => {
     ROUTE_DATA.forEach(r => activeRoutes.add(r.id));
     renderRouteControls();
